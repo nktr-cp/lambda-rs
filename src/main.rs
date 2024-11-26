@@ -1,11 +1,13 @@
 mod lexer;
 mod models;
 mod parser;
+mod substitute;
 use lexer::tokenize;
 use models::Expr;
 use parser::parse;
 use std::fmt::{Display, Error, Formatter};
 use std::io;
+use substitute::substitute;
 
 impl Display for Expr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
@@ -27,10 +29,21 @@ impl Display for Expr {
     }
 }
 
+fn test_apply(exp: Expr) -> Expr {
+    match exp {
+        Expr::App(l, r) => match *l {
+            Expr::Abs(v, b) => substitute(*b, v, &r),
+            _ => panic!("unimplemented"),
+        },
+        _ => panic!("also unimplemented"),
+    }
+}
+
 fn main() {
     let mut buf = String::new();
     io::stdin().read_line(&mut buf).unwrap();
     let tokens = tokenize(&buf);
     let expr = parse(&tokens).unwrap();
-    println!("{}", expr);
+    let result = test_apply(expr);
+    println!("{}", result);
 }

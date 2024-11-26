@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub enum Expr {
     Var(String),
     Abs(String, Box<Expr>),
