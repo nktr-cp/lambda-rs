@@ -52,7 +52,7 @@ fn alpha_convert(v: String, body: Expr) -> (String, Expr) {
     (nv, nb)
 }
 
-pub fn substitute(root: Expr, var: String, val: &Expr) -> Expr {
+fn substitute(root: Expr, var: String, val: &Expr) -> Expr {
     let free_vars = get_free_vars(val);
     match root {
         Expr::Var(v) => {
@@ -76,5 +76,25 @@ pub fn substitute(root: Expr, var: String, val: &Expr) -> Expr {
             Box::new(substitute(*l, var.clone(), val)),
             Box::new(substitute(*r, var, val)),
         ),
+    }
+}
+
+fn beta_reduce(abs: Expr, val: Expr) -> Expr {
+    match abs {
+        Expr::Abs(var, body) => substitute(*body, var, &val),
+        _ => panic!("can't apply to non-abstraction"),
+    }
+}
+
+pub fn reduce_expression(e: Expr) -> Expr {
+    match e {
+        Expr::App(l, r) => {
+            let (l, r) = (reduce_expression(*l), reduce_expression(*r));
+            match l {
+                Expr::Abs(_, _) => reduce_expression(beta_reduce(l, r)),
+                _ => Expr::App(Box::new(l), Box::new(r)),
+            }
+        }
+        _ => e,
     }
 }
