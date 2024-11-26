@@ -1,8 +1,11 @@
 mod lexer;
 mod models;
+mod parser;
 use lexer::tokenize;
 use models::Expr;
+use parser::parse;
 use std::fmt::{Display, Error, Formatter};
+use std::io;
 
 impl Display for Expr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
@@ -25,9 +28,9 @@ impl Display for Expr {
 }
 
 fn main() {
-    let id = Expr::Abs(String::from("x"), Box::new(Expr::Var(String::from("x"))));
-    println!("{}", id);
-
-    let tokens = tokenize("λx.x");
-    println!("{:?}", tokens);
+    let mut buf = String::new();
+    io::stdin().read_line(&mut buf).unwrap();
+    let tokens = tokenize(&buf);
+    let expr = parse(&tokens).unwrap();
+    println!("{}", expr);
 }

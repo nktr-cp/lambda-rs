@@ -11,3 +11,12 @@ pub enum Token {
     Lambda(usize),
     Term(usize, String),
 }
+
+#[derive(Debug)]
+pub enum ParseError {
+    UnclosedParen(usize),
+    UnopenedParen(usize),
+    MissingLambdaVar(usize),
+    MissingLambdaBody(usize),
+    EmptyExprList(usize),
+}
