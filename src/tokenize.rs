@@ -1,36 +1,25 @@
 use crate::models::Token;
+use regex::Regex;
 
 pub fn tokenize(input: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
-    let mut chars = input.chars().enumerate().peekable();
-    let mut current_term = String::new();
-    while let Some((index, ch)) = chars.next() {
-        let mut next_token = None;
-        match ch {
-            '(' => next_token = Some(Token::LParen(index + 1)),
-            ')' => next_token = Some(Token::RParen(index + 1)),
-            '\\' | 'λ' => next_token = Some(Token::Lambda(index + 1)),
-            _ => {
-                if !ch.is_whitespace() && ch != '.' {
-                    current_term.push(ch);
-                    continue;
-                }
-            }
-        }
+    let token_pattern =
+        Regex::new(r"(?P<lambda>[λ\\])|(?P<lparen>\()|(?P<rparen>\))|(?P<term>[A-Za-z]+)").unwrap();
 
-        // reach the end of a term
-        if current_term.len() > 0 {
-            tokens.push(Token::Term(index + 1 - current_term.len(), current_term));
-            current_term = String::new();
-        }
-
-        match next_token {
-            Some(token) => tokens.push(token),
-            None => (),
+    for cap in token_pattern.captures_iter(input) {
+        if let Some(_) = cap.name("lambda") {
+            tokens.push(Token::Lambda(cap.get(0).unwrap().start()));
+        } else if let Some(_) = cap.name("lparen") {
+            tokens.push(Token::LParen(cap.get(0).unwrap().start()));
+        } else if let Some(_) = cap.name("rparen") {
+            tokens.push(Token::RParen(cap.get(0).unwrap().start()));
+        } else if let Some(term) = cap.name("term") {
+            tokens.push(Token::Term(
+                cap.get(0).unwrap().start(),
+                term.as_str().to_string(),
+            ));
         }
     }
-    if current_term.len() > 0 {
-        tokens.push(Token::Term(input.len() - current_term.len(), current_term));
-    }
+
     tokens
 }
